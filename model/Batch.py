@@ -6,7 +6,7 @@ from torch.autograd import Variable
 
 def nopeak_mask(size):
     np_mask = np.triu(np.ones((1, size, size)),k=1).astype('uint8')
-    np_mask =  Variable(torch.from_numpy(np_mask) == 0
+    np_mask =  Variable(torch.from_numpy(np_mask) == 0)
     return np_mask
 
 def create_masks(src, trg, opt):
