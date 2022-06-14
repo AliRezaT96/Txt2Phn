@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn 
-from model.Layers import EncoderLayer, DecoderLayer
-from model.Embed import Embedder, PositionalEncoder, Norm
+from model.Layers import EncoderLayer, DecoderLayer, Norm
+from model.Embed import Embedder, PositionalEncoder
 import copy
 
 def get_clones(module, N):
