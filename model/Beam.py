@@ -14,24 +14,19 @@ def init_vars(src, model, SRC, TRG, opt):
     if opt.device == 0:
         outputs = outputs.cuda()
     
-    trg_mask = nopeak_mask(1, opt)
+    trg_mask = nopeak_mask(1)
     
-    out = model.out(model.decoder(outputs,
-    e_output, src_mask, trg_mask))
+    out = model.out(model.decoder(outputs,e_output, src_mask, trg_mask))
     out = F.softmax(out, dim=-1)
     
     probs, ix = out[:, -1].data.topk(opt.k)
     log_scores = torch.Tensor([math.log(prob) for prob in probs.data[0]]).unsqueeze(0)
     
     outputs = torch.zeros(opt.k, opt.max_len).long()
-    if opt.device == 0:
-        outputs = outputs.cuda()
     outputs[:, 0] = init_tok
     outputs[:, 1] = ix[0]
     
     e_outputs = torch.zeros(opt.k, e_output.size(-2),e_output.size(-1))
-    if opt.device == 0:
-        e_outputs = e_outputs.cuda()
     e_outputs[:, :] = e_output[0]
     
     return outputs, e_outputs, log_scores
