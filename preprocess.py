@@ -1,7 +1,7 @@
 import pandas as pd
 import torchtext
 from torchtext import data
-from Batch import MyIterator, batch_size_fn
+from model.Batch import MyIterator, batch_size_fn
 import os
 import dill as pickle
 
