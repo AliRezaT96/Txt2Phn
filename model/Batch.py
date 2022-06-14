@@ -18,7 +18,7 @@ def create_masks(src, trg, opt):
         size = trg.size(1) # get seq_len for matrix
         np_mask = nopeak_mask(size)
         trg_mask = trg_mask & np_mask
-        
+   
     else:
         trg_mask = None
     return src_mask, trg_mask
