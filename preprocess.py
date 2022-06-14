@@ -1,10 +1,17 @@
 import pandas as pd
 import torchtext
 from torchtext import data
-from Tokenize import tokenize
 from Batch import MyIterator, batch_size_fn
 import os
 import dill as pickle
+
+ 
+def WordTokenizer(self, word):
+    return word.lower().split("")
+    
+def IPATokenizer(self, IPA):
+    return IPA.split("")
+
 
 def read_data(opt):
     
@@ -29,11 +36,9 @@ def create_fields(opt):
      #   print('invalid src language: ' + opt.src_lang + 'supported languages : ' + spacy_langs)  
     #if opt.trg_lang not in spacy_langs:
        # print('invalid trg language: ' + opt.trg_lang + 'supported languages : ' + spacy_langs)
-    
-    tokenizer = tokenize()
 
-    TRG = data.Field(lower=True, tokenize=tokenizer.WordTokenizer, init_token='<sos>', eos_token='<eos>')
-    SRC = data.Field(lower=False, tokenize=tokenizer.IPATokenizer)
+    TRG = data.Field(lower=True, tokenize=WordTokenizer, init_token='<sos>', eos_token='<eos>')
+    SRC = data.Field(lower=False, tokenize=IPATokenizer)
 
     if opt.load_weights is not None:
         try:
