@@ -1,16 +1,16 @@
 import pandas as pd
 import torchtext
-from torchtext import data
+from torchtext.legacy import data
 from model.Batch import MyIterator, batch_size_fn
 import os
 import dill as pickle
 
  
-def WordTokenizer(self, word):
-    return word.lower().split("")
+def WordTokenizer(word):
+    return list(word.lower())
     
-def IPATokenizer(self, IPA):
-    return IPA.split("")
+def IPATokenizer(IPA):
+    return list(IPA)
 
 
 def read_data(opt):
