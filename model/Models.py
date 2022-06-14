@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn 
-from Layers import EncoderLayer, DecoderLayer
-from Embed import Embedder, PositionalEncoder
-from Sublayers import Norm
+from model.Layers import EncoderLayer, DecoderLayer
+from model.Embed import Embedder, PositionalEncoder, Norm
 import copy
 
 def get_clones(module, N):
@@ -65,9 +64,5 @@ def get_model(opt, src_vocab, trg_vocab):
         for p in model.parameters():
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p) 
-    
-    if opt.device == 0:
-        model = model.cuda()
-    
     return model
     
