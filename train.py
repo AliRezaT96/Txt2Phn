@@ -11,12 +11,17 @@ import dill as pickle
 def train_model(model, opt):
     
     print("training model...")
+
+    device  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     model.train()
+    model.to(device)
     start = time.time()
     if opt.checkpoint > 0:
         cptime = time.time()
                  
     for epoch in range(opt.epochs):
+
 
         total_loss = 0
         if opt.floyd is False:
@@ -32,6 +37,14 @@ def train_model(model, opt):
             trg = batch.trg.transpose(0,1)
             trg_input = trg[:, :-1]
             src_mask, trg_mask = create_masks(src, trg_input, opt)
+
+            src.to(device)
+            trg_input.to(device)
+            src_mask.to(device)
+            trg_mask.to(device)
+
+
+
             preds = model(src, trg_input, src_mask, trg_mask)
             ys = trg[:, 1:].contiguous().view(-1)
             opt.optimizer.zero_grad()
