@@ -7,15 +7,16 @@ import torch.nn.functional as F
 from model.Optimizer import CosineWithRestarts
 from model.Batch import create_masks
 import dill as pickle
+import os
 
 def train_model(model, opt):
     
     print("training model...")
 
-    device  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    #device  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model.train()
-    model.to(device)
+    model = model.to('cuda:0')
     start = time.time()
     if opt.checkpoint > 0:
         cptime = time.time()
@@ -34,15 +35,18 @@ def train_model(model, opt):
         for i, batch in enumerate(opt.train): 
 
             src = batch.src.transpose(0,1)
+            
             trg = batch.trg.transpose(0,1)
+
             trg_input = trg[:, :-1]
             src_mask, trg_mask = create_masks(src, trg_input, opt)
 
-            src.to(device)
-            trg_input.to(device)
-            src_mask.to(device)
-            trg_mask.to(device)
-
+            
+            trg_input = trg_input.to('cuda:0')
+            src_mask = src_mask.to('cuda:0')
+            trg_mask = trg_mask.to('cuda:0')
+            trg = trg.to('cuda:0')
+            src = src.to('cuda:0')
 
 
             preds = model(src, trg_input, src_mask, trg_mask)
@@ -89,8 +93,8 @@ def main():
     parser.add_argument('-n_layers', type=int, default=6)
     parser.add_argument('-heads', type=int, default=8)
     parser.add_argument('-dropout', type=int, default=0.1)
-    parser.add_argument('-batchsize', type=int, default=1500)
-    parser.add_argument('-printevery', type=int, default=100)
+    parser.add_argument('-batchsize', type=int, default=16)
+    parser.add_argument('-printevery', type=int, default=10)
     parser.add_argument('-lr', type=int, default=0.0001)
     parser.add_argument('-load_weights')
     parser.add_argument('-create_valset', action='store_true')
@@ -103,7 +107,7 @@ def main():
     read_data(opt)
     SRC, TRG = create_fields(opt)
     opt.train = create_dataset(opt, SRC, TRG)
-    model = get_model(opt, len(SRC.vocab), len(TRG.vocab))
+    model = get_model(opt, len(SRC.vocab), len(TRG.vocab)).to('cuda:0')
 
     opt.optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
     if opt.SGDR == True:
