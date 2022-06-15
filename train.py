@@ -13,10 +13,10 @@ def train_model(model, opt):
     
     print("training model...")
 
-    #device  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model.train()
-    model = model.to('cpu')
+    model = model.to(device)
     start = time.time()
     if opt.checkpoint > 0:
         cptime = time.time()
@@ -30,7 +30,7 @@ def train_model(model, opt):
             ((time.time() - start)//60, epoch + 1, "".join(' '*20), 0, '...'), end='\r')
         
         if opt.checkpoint > 0:
-            torch.save(model.state_dict(), 'weights/model_weights')
+            torch.save(model.to('cpu').state_dict(), 'weights/model_weights')
                     
         for i, batch in enumerate(opt.train): 
 
@@ -42,11 +42,11 @@ def train_model(model, opt):
             src_mask, trg_mask = create_masks(src, trg_input, opt)
 
             
-            trg_input = trg_input.to('cpu')
-            src_mask = src_mask.to('cpu')
-            trg_mask = trg_mask.to('cpu')
-            trg = trg.to('cpu')
-            src = src.to('cpu')
+            trg_input = trg_input.to('device')
+            src_mask = src_mask.to('device')
+            trg_mask = trg_mask.to('device')
+            trg = trg.to('device')
+            src = src.to('device')
 
 
             preds = model(src, trg_input, src_mask, trg_mask)
@@ -72,7 +72,7 @@ def train_model(model, opt):
                  total_loss = 0
             
             if opt.checkpoint > 0 and ((time.time()-cptime)//60) // opt.checkpoint >= 1:
-                torch.save(model.state_dict(), 'weights/model_weights')
+                torch.save(model.to('cpu').state_dict(), 'weights/model_weights')
                 cptime = time.time()
    
    
@@ -116,10 +116,10 @@ def main():
     if opt.checkpoint > 0:
         print("model weights will be saved every %d minutes and at end of epoch to directory weights/"%(opt.checkpoint))
     
-    if opt.load_weights is not None:
-        os.mkdir('weights')
-        pickle.dump(SRC, open('weights/SRC.pkl', 'wb'))
-        pickle.dump(TRG, open('weights/TRG.pkl', 'wb'))
+    #if opt.load_weights is not None:
+     #   os.mkdir('weights')
+      #  pickle.dump(SRC, open('weights/SRC.pkl', 'wb'))
+       # pickle.dump(TRG, open('weights/TRG.pkl', 'wb'))
     
     train_model(model, opt)
 
