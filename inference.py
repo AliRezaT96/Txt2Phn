@@ -18,26 +18,23 @@ def translate_sentence(word, model, opt, SRC, TRG):
     model.eval()
     indexed = []
     sentence = SRC.preprocess(word)
-    print('pre',sentence)
     for tok in sentence:
         if SRC.vocab.stoi[tok] != 0 or opt.floyd == True:
             indexed.append(SRC.vocab.stoi[tok])
         else:
             indexed.append(tok)
-    print(1)
     sentence = Variable(torch.LongTensor([indexed]))
     
     sentence = beam_search(sentence, model, SRC, TRG, opt)
 
-    return  sentence
+    return  ''.join(sentence.split())
 
 def translate(opt, model, SRC, TRG):
     words = opt.text.lower()
-    print('words',words)
     translated = []
 
     for word in words.split():
-        translated.append(translate_sentence(word + ' ', model, opt, SRC, TRG))
+        translated.append(translate_sentence(word, model, opt, SRC, TRG))
 
     return (' '.join(translated))
 
