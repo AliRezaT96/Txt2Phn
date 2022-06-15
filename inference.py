@@ -10,50 +10,34 @@ import pdb
 import dill as pickle
 import argparse
 from model.Beam import beam_search
-from nltk.corpus import wordnet
 from torch.autograd import Variable
 import re
 
-def get_synonym(word, SRC):
-    syns = wordnet.synsets(word)
-    for s in syns:
-        for l in s.lemmas():
-            if SRC.vocab.stoi[l.name()] != 0:
-                return SRC.vocab.stoi[l.name()]
-            
-    return 0
-
-def multiple_replace(dict, text):
-  # Create a regular expression  from the dictionary keys
-  regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
-
-  # For each match, look-up corresponding value in dictionary
-  return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text) 
-
-def translate_sentence(sentence, model, opt, SRC, TRG):
+def translate_sentence(word, model, opt, SRC, TRG):
     
     model.eval()
     indexed = []
-    sentence = SRC.preprocess(sentence)
+    sentence = SRC.preprocess(word)
+    print('pre',sentence)
     for tok in sentence:
         if SRC.vocab.stoi[tok] != 0 or opt.floyd == True:
             indexed.append(SRC.vocab.stoi[tok])
         else:
-            indexed.append(get_synonym(tok, SRC))
+            indexed.append(tok)
+    print(1)
     sentence = Variable(torch.LongTensor([indexed]))
-    if opt.device == 0:
-        sentence = sentence.cuda()
     
     sentence = beam_search(sentence, model, SRC, TRG, opt)
 
-    return  multiple_replace({' ?' : '?',' !':'!',' .':'.','\' ':'\'',' ,':','}, sentence)
+    return  sentence
 
 def translate(opt, model, SRC, TRG):
-    sentences = opt.text.lower().split('.')
+    words = opt.text.lower()
+    print('words',words)
     translated = []
 
-    for sentence in sentences:
-        translated.append(translate_sentence(sentence + '.', model, opt, SRC, TRG).capitalize())
+    for word in words.split():
+        translated.append(translate_sentence(word + ' ', model, opt, SRC, TRG))
 
     return (' '.join(translated))
 
@@ -74,8 +58,6 @@ def main():
     parser.add_argument('-floyd', action='store_true')
     
     opt = parser.parse_args()
-
-    opt.device = 0 if opt.no_cuda is False else -1
  
     assert opt.k > 0
     assert opt.max_len > 10
