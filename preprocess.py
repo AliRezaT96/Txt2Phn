@@ -56,11 +56,12 @@ def create_dataset(opt, SRC, TRG):
 
     print("creating dataset and iterator... ")
 
-    raw_data = {'src' : [line.split('\t')[0] for line in opt.src_data], 'trg': [line.split('/')[1] for line in opt.trg_data]}
+    raw_data = {'src' : [' '.join(list(line.split('\t')[0])) for line in opt.src_data], 'trg': [' '.join(list(line.split('/')[1])) for line in opt.trg_data]}
     df = pd.DataFrame(raw_data, columns=["src", "trg"])
     
     mask = (df['src'].str.count(' ') < opt.max_strlen) & (df['trg'].str.count(' ') < opt.max_strlen)
     df = df.loc[mask]
+    print(df)
 
     df.to_csv("translate_transformer_temp.csv", index=False)
     
@@ -83,10 +84,19 @@ def create_dataset(opt, SRC, TRG):
             pickle.dump(SRC, open('weights/SRC.pkl', 'wb'))
             pickle.dump(TRG, open('weights/TRG.pkl', 'wb'))
 
+            with open('SRCVocab.txt', 'w') as f:
+                for item in list(SRC.vocab.freqs):
+                  f.write("%s\n" % item)
+
+            with open('TRGVocab.txt', 'w') as f:
+                for item in list(TRG.vocab.freqs):
+                  f.write("%s\n" % item)
+
     opt.src_pad = SRC.vocab.stoi['<pad>']
     opt.trg_pad = TRG.vocab.stoi['<pad>']
 
-    opt.train_len = get_len(train_iter)
+    #opt.train_len = get_len(train_iter)
+    opt.train_len = int(len(df)/opt.batchsize)
 
     return train_iter
 
