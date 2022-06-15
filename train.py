@@ -16,7 +16,7 @@ def train_model(model, opt):
     #device  = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model.train()
-    model = model.to('cuda:0')
+    model = model.to('cpu')
     start = time.time()
     if opt.checkpoint > 0:
         cptime = time.time()
@@ -42,11 +42,11 @@ def train_model(model, opt):
             src_mask, trg_mask = create_masks(src, trg_input, opt)
 
             
-            trg_input = trg_input.to('cuda:0')
-            src_mask = src_mask.to('cuda:0')
-            trg_mask = trg_mask.to('cuda:0')
-            trg = trg.to('cuda:0')
-            src = src.to('cuda:0')
+            trg_input = trg_input.to('cpu')
+            src_mask = src_mask.to('cpu')
+            trg_mask = trg_mask.to('cpu')
+            trg = trg.to('cpu')
+            src = src.to('cpu')
 
 
             preds = model(src, trg_input, src_mask, trg_mask)
@@ -98,16 +98,16 @@ def main():
     parser.add_argument('-lr', type=int, default=0.0001)
     parser.add_argument('-load_weights')
     parser.add_argument('-create_valset', action='store_true')
-    parser.add_argument('-max_strlen', type=int, default=80)
+    parser.add_argument('-max_strlen', type=int, default=50)
     parser.add_argument('-floyd', action='store_true')
-    parser.add_argument('-checkpoint', type=int, default=0)
+    parser.add_argument('-checkpoint', type=int, default=1)
 
     opt = parser.parse_args()
     
     read_data(opt)
     SRC, TRG = create_fields(opt)
     opt.train = create_dataset(opt, SRC, TRG)
-    model = get_model(opt, len(SRC.vocab), len(TRG.vocab)).to('cuda:0')
+    model = get_model(opt, len(SRC.vocab), len(TRG.vocab)).to('cpu')
 
     opt.optimizer = torch.optim.Adam(model.parameters(), lr=opt.lr, betas=(0.9, 0.98), eps=1e-9)
     if opt.SGDR == True:
@@ -116,7 +116,7 @@ def main():
     if opt.checkpoint > 0:
         print("model weights will be saved every %d minutes and at end of epoch to directory weights/"%(opt.checkpoint))
     
-    if opt.load_weights is not None and opt.floyd is not None:
+    if opt.load_weights is not None:
         os.mkdir('weights')
         pickle.dump(SRC, open('weights/SRC.pkl', 'wb'))
         pickle.dump(TRG, open('weights/TRG.pkl', 'wb'))
